@@ -1,0 +1,20 @@
+{
+  "name": "astra",
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix"
+  },
+  "packageManager": "pnpm@10.10.0",
+  "devDependencies": {
+    "@types/node": "^22.15.30",
+    "eslint": "^9.28.0",
+    "eslint-config-moaqz": "^0.3.0",
+    "lefthook": "^1.11.13",
+    "typescript": "^5.8.3"
+  },
+  "dependencies": {
+    "ofetch": "^1.4.1"
+  }
+}
