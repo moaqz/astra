@@ -76,7 +76,7 @@ export type VersionManifest = {
   },
   libraries: {
     downloads: {
-      artifact: {
+      artifact?: {
         path: string;
         sha1: string;
         size: number;
@@ -93,7 +93,7 @@ export type VersionManifest = {
         arch?: string;
       };
     }[];
-  },
+  }[],
   logging?: {
     client: {
       argument: string;
@@ -113,3 +113,6 @@ export type VersionManifest = {
   time: string;
   type: ManifestType;
 };
+
+export type Library = VersionManifest["libraries"][number];
+export type LibraryRules = Library["rules"];

@@ -13,8 +13,5 @@
     "eslint-config-moaqz": "^0.3.0",
     "lefthook": "^1.11.13",
     "typescript": "^5.8.3"
-  },
-  "dependencies": {
-    "ofetch": "^1.4.1"
   }
 }
