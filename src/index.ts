@@ -19,4 +19,8 @@ emitter.on(DOWNLOAD_EVENTS["download:completed"], (data) => {
   console.log(`${styleText("cyan", "[COMPLETED]")} ${data.name} downloaded to ${data.path}`);
 });
 
+emitter.on(DOWNLOAD_EVENTS["download:skipped"], (data) => {
+  console.log(`${styleText("grey", "[SKIPPED]")} ${data.name}`);
+});
+
 await launcher.download();
