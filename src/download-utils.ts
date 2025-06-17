@@ -8,6 +8,7 @@ export const DOWNLOAD_EVENTS = {
   "download:progress": "download:progress",
   "download:completed": "download:completed",
   "download:start": "download:start",
+  "download:skipped": "download:skipped",
 } as const;
 
 export async function downloadFileWithProgress(url: string, destPath: string) {

@@ -1,7 +1,7 @@
 import { ManifestService } from "./manifest";
 import { defaultOpts, type LauncherOptions } from "./options";
 import type { LibraryRules, VersionManifest } from "./types/version";
-import { downloadFileWithProgress } from "./download-utils";
+import { downloadFileWithProgress, DOWNLOAD_EVENTS, emitter } from "./download-utils";
 import { getArch, getOS } from "./os-utils";
 
 import path from "node:path";
@@ -35,6 +35,7 @@ export class Launcher {
     );
 
     if (await this.fileExists(clientPath)) {
+      this.skipDownload(clientPath, manifest.downloads.client.url);
       return;
     }
 
@@ -57,6 +58,7 @@ export class Launcher {
       const assetDir = path.dirname(assetPath);
 
       if (!(await this.shouldDownloadAsset(assetPath))) {
+        this.skipDownload(assetPath, assetURL);
         continue;
       }
 
@@ -87,6 +89,7 @@ export class Launcher {
       if (
         !(await this.shouldDownloadLibrary(libPath, library.rules))
       ) {
+        this.skipDownload(libPath, library.downloads.artifact.url);
         continue;
       }
 
@@ -141,5 +144,13 @@ export class Launcher {
     return fs.access(path, constants.R_OK)
       .then(() => true)
       .catch(() => false);
+  }
+
+  private skipDownload(filePath: string, url: string) {
+    emitter.emit(DOWNLOAD_EVENTS["download:skipped"], {
+      name: path.basename(filePath),
+      url,
+      path: filePath,
+    });
   }
 }
