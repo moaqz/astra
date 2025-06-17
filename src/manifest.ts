@@ -19,6 +19,14 @@ export class ManifestService {
     return path.join(this.defaultOpts.gameDirectory, "versions");
   }
 
+  public getClientDir(): string {
+    return path.join(this.defaultOpts.gameDirectory, "versions", this.defaultOpts.version);
+  }
+
+  public getAssetsDir(): string {
+    return path.join(this.defaultOpts.gameDirectory, "assets", "objects");
+  }
+
   public getAssetsIndexesDir(): string {
     return path.join(this.defaultOpts.gameDirectory, "assets", "indexes");
   }
@@ -116,8 +124,9 @@ export class ManifestService {
     });
 
     await fs.mkdir(path.dirname(assetIndexPath), { recursive: true });
-    await fs.writeFile(assetIndexPath, JSON.stringify(assetIndexPath), "utf8");
 
-    return response.json() as Promise<AssetIndex>;
+    const assetIndex = await response.json() as Promise<AssetIndex>;
+    await fs.writeFile(assetIndexPath, JSON.stringify(assetIndex), "utf8");
+    return assetIndex;
   }
 }

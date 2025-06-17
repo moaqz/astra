@@ -21,7 +21,53 @@ export class Launcher {
 
   public async download() {
     const versionManifest = await this.manifestService.getVersion(this.opts.version);
+
+    await this.downloadClient(versionManifest);
     await this.downloadLibraries(versionManifest);
+    await this.downloadAssets(versionManifest);
+  }
+
+  private async downloadClient(manifest: VersionManifest) {
+    const clientDir = this.manifestService.getClientDir();
+    const clientPath = path.join(
+      clientDir,
+      `${this.opts.version}.jar`
+    );
+
+    if (await this.fileExists(clientPath)) {
+      return;
+    }
+
+    await fs.mkdir(clientDir, { recursive: true });
+    await downloadFileWithProgress(manifest.downloads.client.url, clientPath);
+  }
+
+  private async downloadAssets(manifest: VersionManifest) {
+    const assetIndex = await this.manifestService.getAssetIndex(manifest, this.opts.version);
+
+    const objects = Object.values(assetIndex.objects);
+    for (const { hash } of objects) {
+      const hashPrefix = hash.slice(0, 2);
+      const assetURL = `https://resources.download.minecraft.net/${hashPrefix}/${hash}`;
+      const assetPath = path.join(
+        this.manifestService.getAssetsDir(),
+        hashPrefix,
+        hash
+      );
+      const assetDir = path.dirname(assetPath);
+
+      if (!(await this.shouldDownloadAsset(assetPath))) {
+        continue;
+      }
+
+      await fs.mkdir(assetDir, { recursive: true });
+      await downloadFileWithProgress(assetURL, assetPath);
+    }
+  }
+
+  private async shouldDownloadAsset(path: string): Promise<boolean> {
+    const exists = await this.fileExists(path);
+    return !exists;
   }
 
   private async downloadLibraries(manifest: VersionManifest) {
@@ -54,11 +100,7 @@ export class Launcher {
       return false;
     }
 
-    const fileExists = await fs.access(path, constants.R_OK)
-      .then(() => true)
-      .catch(() => false);
-
-    if (fileExists) {
+    if (await this.fileExists(path)) {
       return false;
     }
 
@@ -93,5 +135,11 @@ export class Launcher {
     }
 
     return allowed;
+  }
+
+  private async fileExists(path: string): Promise<boolean> {
+    return fs.access(path, constants.R_OK)
+      .then(() => true)
+      .catch(() => false);
   }
 }
