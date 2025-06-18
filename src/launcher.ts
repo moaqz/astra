@@ -40,7 +40,11 @@ export class Launcher {
     }
 
     await fs.mkdir(clientDir, { recursive: true });
-    await downloadFileWithProgress(manifest.downloads.client.url, clientPath);
+    await downloadFileWithProgress(
+      manifest.downloads.client.url,
+      manifest.downloads.client.sha1,
+      clientPath
+    );
   }
 
   private async downloadAssets(manifest: VersionManifest) {
@@ -63,7 +67,7 @@ export class Launcher {
       }
 
       await fs.mkdir(assetDir, { recursive: true });
-      await downloadFileWithProgress(assetURL, assetPath);
+      await downloadFileWithProgress(assetURL, hash, assetPath);
     }
   }
 
@@ -94,7 +98,11 @@ export class Launcher {
       }
 
       await fs.mkdir(libDir, { recursive: true });
-      await downloadFileWithProgress(library.downloads.artifact.url, libPath);
+      await downloadFileWithProgress(
+        library.downloads.artifact.url,
+        library.downloads.artifact.sha1,
+        libPath
+      );
     }
   }
 

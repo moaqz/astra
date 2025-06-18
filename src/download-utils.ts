@@ -1,6 +1,7 @@
-import { createWriteStream } from "node:fs";
+import fs, { createWriteStream } from "node:fs";
 import { EventEmitter } from "node:events";
 import path from "node:path";
+import { createHash } from "node:crypto";
 
 export const emitter = new EventEmitter();
 
@@ -9,9 +10,11 @@ export const DOWNLOAD_EVENTS = {
   "download:completed": "download:completed",
   "download:start": "download:start",
   "download:skipped": "download:skipped",
+  "download:failed": "download:failed",
+  "download:checksum_check": "download:checksum_check",
 } as const;
 
-export async function downloadFileWithProgress(url: string, destPath: string) {
+export async function downloadFileWithProgress(url: string, sha1: string, destPath: string) {
   const { response, reader } = await fetchWithRetry(url);
   const writeStream = createWriteStream(destPath);
   const totalSize = Number.parseInt(response.headers.get("content-length") || "0");
@@ -25,6 +28,8 @@ export async function downloadFileWithProgress(url: string, destPath: string) {
     path: destPath,
     size: totalSize,
   };
+
+  const hash = createHash("sha1");
 
   try {
     emitter.emit(DOWNLOAD_EVENTS["download:start"], {
@@ -40,9 +45,10 @@ export async function downloadFileWithProgress(url: string, destPath: string) {
         break;
       }
 
+      hash.update(value);
       writeStream.write(value);
-
       downloadedBytes += value.length;
+
       emitter.emit(DOWNLOAD_EVENTS["download:progress"], {
         ...baseMetadata,
         downloadSize: downloadedBytes,
@@ -56,11 +62,37 @@ export async function downloadFileWithProgress(url: string, destPath: string) {
     writeStream.end();
   }
 
-  emitter.emit(DOWNLOAD_EVENTS["download:completed"], {
+  const calculatedHash = hash.digest("hex");
+  emitter.emit(DOWNLOAD_EVENTS["download:checksum_check"], {
     ...baseMetadata,
-    downloadSize: downloadedBytes,
-    progress: 100,
+    expectedHash: sha1,
+    calculatedHash,
   });
+
+  if (calculatedHash === sha1) {
+    emitter.emit(DOWNLOAD_EVENTS["download:completed"], {
+      ...baseMetadata,
+      downloadSize: downloadedBytes,
+      progress: 100,
+    });
+
+    return;
+  }
+
+  try {
+    await fs.promises.unlink(destPath);
+    emitter.emit(DOWNLOAD_EVENTS["download:failed"], {
+      ...baseMetadata,
+      error: "Checksum mismatch",
+    });
+  } catch (_) {
+    emitter.emit(DOWNLOAD_EVENTS["download:failed"], {
+      ...baseMetadata,
+      error: "Checksum mismatch and file deletion failed",
+    });
+
+    throw new Error(`Checksum validation failed and couldn't delete file ${fileName}.`);
+  }
 }
 
 async function fetchWithRetry(url: string, maxRetries = 3) {

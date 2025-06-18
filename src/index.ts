@@ -23,4 +23,12 @@ emitter.on(DOWNLOAD_EVENTS["download:skipped"], (data) => {
   console.log(`${styleText("grey", "[SKIPPED]")} ${data.name}`);
 });
 
+emitter.on(DOWNLOAD_EVENTS["download:failed"], (data) => {
+  console.log(`${styleText("red", "[FAILED]")} ${data.name}`);
+});
+
+emitter.on(DOWNLOAD_EVENTS["download:checksum_check"], (data) => {
+  console.log(`${styleText("magenta", "[CHECKSUM]")} Checking ${data.name}... Expected: ${data.expectedHash}, Calculated: ${data.calculatedHash}`);
+});
+
 await launcher.download();
