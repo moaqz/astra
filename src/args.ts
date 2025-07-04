@@ -1,5 +1,5 @@
-import type { LauncherOptions } from "./options";
 import { matchesAllRules } from "./rules";
+import type { LauncherOptions } from "./types/launcher";
 import type { ManifestArgument } from "./types/version";
 
 export function parseArgs(manifestArgs: ManifestArgument[], opts: LauncherOptions): string {

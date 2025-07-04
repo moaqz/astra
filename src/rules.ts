@@ -1,5 +1,5 @@
-import type { LauncherOptions } from "./options";
 import { getArch, getOS } from "./os-utils";
+import type { LauncherOptions } from "./types/launcher";
 import type { ManifestRule } from "./types/version";
 
 function matchesRuleConditions(rule: ManifestRule, opts: LauncherOptions) {

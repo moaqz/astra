@@ -1,9 +1,10 @@
 import { ManifestService } from "./manifest";
-import { defaultOpts, type LauncherOptions } from "./options";
+import { defaultOpts } from "./options";
 import type { ManifestRule, VersionManifest } from "./types/version";
 import { downloadFileWithProgress, DOWNLOAD_EVENTS, emitter } from "./download-utils";
 import { parseArgs } from "./args";
 import { matchesAllRules } from "./rules";
+import type { LauncherOptions } from "./types/launcher";
 
 import path from "node:path";
 import fs, { constants } from "node:fs/promises";
@@ -35,10 +36,9 @@ export class Launcher {
       return;
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const gameArgs = parseArgs(this.manifest.arguments.game, this.opts);
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const jvmArgs = parseArgs(this.manifest.arguments.jvm, this.opts);
+    console.warn({ gameArgs, jvmArgs });
   }
 
   private async downloadClient(manifest: VersionManifest) {

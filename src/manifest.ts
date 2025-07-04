@@ -1,7 +1,7 @@
 import type { ManifestV2, ManifestVersion } from "./types/manifest";
 import type { VersionManifest } from "./types/version";
 import type { AssetIndex } from "./types/assets";
-import { type LauncherOptions } from "./options";
+import type { LauncherOptions } from "./types/launcher";
 
 import fs from "node:fs/promises";
 import path from "node:path";

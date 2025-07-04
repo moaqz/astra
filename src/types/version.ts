@@ -1,15 +1,9 @@
+import type { LauncherFeatures } from "./launcher";
 import type { ManifestType } from "./manifest";
 
 export type ManifestRule = {
   action: "allow" | "disallow";
-  features?: {
-    is_demo_user?: boolean;
-    has_custom_resolution?: boolean;
-    has_quick_plays_support?: boolean;
-    is_quick_play_singleplayer?: boolean;
-    is_quick_play_multiplayer?: boolean;
-    is_quick_play_realms?: boolean;
-  };
+  features?: LauncherFeatures;
   os?: {
     name?: "windows" | "osx" | "linux";
     version?: string;
