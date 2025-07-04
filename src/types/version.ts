@@ -1,42 +1,51 @@
 import type { ManifestType } from "./manifest";
 
+export type ManifestRule = {
+  action: "allow" | "disallow";
+  features?: {
+    is_demo_user?: boolean;
+    has_custom_resolution?: boolean;
+    has_quick_plays_support?: boolean;
+    is_quick_play_singleplayer?: boolean;
+    is_quick_play_multiplayer?: boolean;
+    is_quick_play_realms?: boolean;
+  };
+  os?: {
+    name?: "windows" | "osx" | "linux";
+    version?: string;
+    arch?: string;
+  };
+};
+
+export type ManifestArgument = (
+  | string
+  | {
+    rules: ManifestRule[],
+    value: string | string[]
+  }
+);
+
+export type Library = {
+  downloads: {
+    artifact?: {
+      path: string;
+      sha1: string;
+      size: number;
+      url: string;
+    }
+  },
+  name: string;
+  url?: string;
+  rules?: ManifestRule[];
+};
+
 /**
  * @see https://minecraft.wiki/w/Client.json
  */
 export type VersionManifest = {
   arguments?: {
-    game: (
-      | string
-      | {
-        rules: {
-          action: "allow" | "disallow";
-          features?: {
-            is_demo_user?: boolean;
-            has_custom_resolution?: boolean;
-            has_quick_plays_support?: boolean;
-            is_quick_play_singleplayer?: boolean;
-            is_quick_play_multiplayer?: boolean;
-            is_quick_play_realms?: boolean;
-          };
-        }[];
-        value: string | string[];
-      }
-    )[];
-    jvm: (
-      | string
-      | {
-        rules: {
-          action: "allow" | "disallow";
-          features?: {};
-          os?: {
-            name?: "windows" | "osx" | "linux";
-            version?: string;
-            arch?: string;
-          };
-        }[];
-        value: string | string[];
-      }
-    )[];
+    game: ManifestArgument[];
+    jvm: ManifestArgument[];
   },
   assetIndex: {
     id: string;
@@ -74,26 +83,7 @@ export type VersionManifest = {
     component: string;
     majorVersion: number;
   },
-  libraries: {
-    downloads: {
-      artifact?: {
-        path: string;
-        sha1: string;
-        size: number;
-        url: string;
-      }
-    },
-    name: string;
-    url?: string;
-    rules?: {
-      action: "allow" | "disallow";
-      os?: {
-        name: "windows" | "osx" | "linux";
-        version?: string;
-        arch?: string;
-      };
-    }[];
-  }[],
+  libraries: Library[],
   logging?: {
     client: {
       argument: string;
@@ -113,6 +103,3 @@ export type VersionManifest = {
   time: string;
   type: ManifestType;
 };
-
-export type Library = VersionManifest["libraries"][number];
-export type LibraryRules = Library["rules"];

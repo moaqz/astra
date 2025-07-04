@@ -4,7 +4,11 @@ import { emitter, DOWNLOAD_EVENTS } from "./download-utils";
 import { styleText } from "node:util";
 
 const launcher = new Launcher({
-  version: "1.21.5",
+  version: "1.21.7",
+  versionType: "relase",
+  auth: {
+    name: "test"
+  }
 });
 
 emitter.on(DOWNLOAD_EVENTS["download:start"], (data) => {
@@ -32,3 +36,4 @@ emitter.on(DOWNLOAD_EVENTS["download:checksum_check"], (data) => {
 });
 
 await launcher.download();
+await launcher.start();

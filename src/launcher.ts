@@ -1,8 +1,9 @@
 import { ManifestService } from "./manifest";
 import { defaultOpts, type LauncherOptions } from "./options";
-import type { LibraryRules, VersionManifest } from "./types/version";
+import type { ManifestRule, VersionManifest } from "./types/version";
 import { downloadFileWithProgress, DOWNLOAD_EVENTS, emitter } from "./download-utils";
-import { getArch, getOS } from "./os-utils";
+import { parseArgs } from "./args";
+import { matchesAllRules } from "./rules";
 
 import path from "node:path";
 import fs, { constants } from "node:fs/promises";
@@ -10,6 +11,7 @@ import fs, { constants } from "node:fs/promises";
 export class Launcher {
   private readonly manifestService: ManifestService;
   private readonly opts: Required<LauncherOptions>;
+  private manifest: VersionManifest | null = null;
 
   constructor(opts: LauncherOptions) {
     this.opts = {
@@ -21,10 +23,22 @@ export class Launcher {
 
   public async download() {
     const versionManifest = await this.manifestService.getVersion(this.opts.version);
+    this.manifest = versionManifest;
 
     await this.downloadClient(versionManifest);
     await this.downloadLibraries(versionManifest);
     await this.downloadAssets(versionManifest);
+  }
+
+  public async start() {
+    if (!this.manifest || !this.manifest.arguments) {
+      return;
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const gameArgs = parseArgs(this.manifest.arguments.game, this.opts);
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const jvmArgs = parseArgs(this.manifest.arguments.jvm, this.opts);
   }
 
   private async downloadClient(manifest: VersionManifest) {
@@ -106,8 +120,8 @@ export class Launcher {
     }
   }
 
-  private async shouldDownloadLibrary(path: string, rules: LibraryRules): Promise<boolean> {
-    if (!this.rulesMatch(rules)) {
+  private async shouldDownloadLibrary(path: string, rules: ManifestRule[] | undefined): Promise<boolean> {
+    if (rules && !matchesAllRules(rules, this.opts)) {
       return false;
     }
 
@@ -116,36 +130,6 @@ export class Launcher {
     }
 
     return true;
-  }
-
-  private rulesMatch(rules: LibraryRules): boolean {
-    if (!rules || rules.length === 0) {
-      return true;
-    }
-
-    const currentOS = getOS();
-    const currentArch = getArch();
-    let allowed = false;
-
-    for (const rule of rules) {
-      let matches = true;
-
-      if (rule.os) {
-        if (rule.os.name && rule.os.name !== currentOS) {
-          matches = false;
-        }
-
-        if (rule.os.arch && rule.os.arch !== currentArch) {
-          matches = false;
-        }
-      }
-
-      if (matches) {
-        allowed = rule.action === "allow";
-      }
-    }
-
-    return allowed;
   }
 
   private async fileExists(path: string): Promise<boolean> {
